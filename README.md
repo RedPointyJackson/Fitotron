@@ -36,12 +36,12 @@ fit_result = fit_model(fit_fun,df,[1.0,1.0,0.1,1.0])
 The returned `fit_result` contains in its fields all the available data:
 
 
-* `param_results`:  Fit results
-* `param_stdevs`:  Standard deviations at 1 σ
-* `covariance`:  Covariance of the parameters
-* `resid`: final sum of residuals
-* `fit_value`: gives value of fit function in x
-* `fit_stdev`: gives stderr of fit function in x
+* `param_results`  Fit results
+* `param_stdevs`  Standard deviations at 1 σ
+* `covariance`  Covariance of the parameters
+* `resid` final sum of residuals
+* `fit_value` gives value of fit function in x
+* `fit_stdev` gives stderr of fit function in x
 
 We can create a plot to see the results, with the help of the `fit_value` and `fit_stdev` functions:
 
