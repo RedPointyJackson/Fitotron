@@ -6,8 +6,7 @@ uses a Nelder-Mead method to find the optimum parameters of the fit.
 
 It **doesn't** rescale the errors based on the minimum value of the sum of residuals function.
 
-
-Example of usage
+Usage
 -----------
 
 We load the necesary libs:
@@ -68,3 +67,5 @@ plot(
      layer(df_data,x=:x,y=:y,ymin=:ymin,ymax=:ymax,Geom.errorbar),
      layer(df_fit,x=:x,y=:y,ymin=:ymin,ymax=:ymax,Geom.ribbon))
 ```
+
+![Fitted!](http://i.imgur.com/mp9XHYw.png)
