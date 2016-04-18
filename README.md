@@ -4,7 +4,7 @@ Fitotron
 Fitotron provides ordinary least squares with a simple interface. It
 uses a Nelder-Mead method to find the optimum parameters of the fit.
 
-It **doesn't** rescale the errors based on the minimum value of the sum of residuals function.
+It can (optionaly) rescale the parameter uncertainties using the minimum value of the sum of residuals function.
 
 Usage
 -----------
@@ -32,6 +32,12 @@ We call the fitting function:
 # Fit it 
 fit_result = fit_model(fit_fun,df,[1.0,1.0,0.1,1.0])
 ```
+An optional argument `rescale`, that can be true or false, makes the minimum of
+the sum of the residues squared be the number of degrees of freedom (minus the
+number of parameters) at the minimum. In other words; if enabled, the parameter
+standard deviations will be multiplied by the root of S/(dof), where dof is the
+number of datapoints minus the number of parameters and S is the residue of the
+cost function minimization.
 
 The returned `fit_result` contains in its fields all the available data:
 

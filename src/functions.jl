@@ -1,5 +1,5 @@
 # Utility function
-function propagate_errors(f,params,param_stdev,x)
+function propagate_errors(f,params,param_stdevs,x)
     # Given f(x,params) and the stdev in the params, compute the stdev
     # of f in x by error propagation.
     #
@@ -7,12 +7,12 @@ function propagate_errors(f,params,param_stdev,x)
     g(params) = f(x,params)
     dds = Calculus.gradient(g)(params)
     # The stdev squared is (∂f/∂p₁ ⋅ δp₁)² + ⋯ 
-    stdev = sqrt(sumabs2( dds .* param_stdev))
+    stdev = sqrt(sumabs2( dds .* param_stdevs))
 end
 
 
 # Core of the library
-function fit_model(fit_func,df,initial_params)
+function fit_model(fit_func,df,initial_params;rescaling=false)
     N = size(df)[1]
     haserrors = size(df)[2] == 3 # Identify if the fit has uncertainties
 
@@ -33,7 +33,7 @@ function fit_model(fit_func,df,initial_params)
     end
 
     # Find the best parameters
-    opt = optimize(cost,initial_arams)
+    opt = optimize(cost,initial_params)
 
     best_params = opt.minimum
 
@@ -50,15 +50,22 @@ function fit_model(fit_func,df,initial_params)
     C = (J'*W*J)^-1
 
     # Parameter stdevs
-    param_stdev = sqrt(diag(C))
+    if rescaling
+        # Residuals should follow a χ² distribution at the minimum.
+        # The value should be in that case the d.o.f.
+        dof = N - length(initial_params)
+        param_stdevs = sqrt(diag(C)*opt.f_minimum/dof)
+    else
+        param_stdevs = sqrt(diag(C))
+    end
 
     # Make functions to access the fit with ease
     fit_in_point(x) = fit_func(x,best_params)
-    stdev_in_point(x) = propagate_errors(fit_func,best_params,param_stdev,x)
+    stdev_in_point(x) = propagate_errors(fit_func,best_params,param_stdevs,x)
 
     # Return the fit in its nice container
     return FitResult( best_params, # Fit results
-                      param_stdev, # Standard deviations at 1 σ
+                      param_stdevs, # Standard deviations at 1 σ
                       C, # Covariance of the parameters
                       opt.f_minimum, # final sum of residuals
                       fit_in_point, # gives value of fit function in x
