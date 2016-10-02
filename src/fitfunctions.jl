@@ -1,8 +1,13 @@
 # Utility function
+"""
+
+    propagate_errors(f,params,param_stdevs,x)
+
+
+Given `f(x,params)` and the stdev in the params, compute the stdev
+of `f` in `x` by error propagation.
+"""
 function propagate_errors(f,params,param_stdevs,x)
-    # Given f(x,params) and the stdev in the params, compute the stdev
-    # of f in x by error propagation.
-    #
     # Take the derivatives of f(x,params) in the point
     g(params) = f(x,params)
     if length(params) > 1
@@ -10,260 +15,203 @@ function propagate_errors(f,params,param_stdevs,x)
     else
         dds = g'(params)
     end
-    # The stdev squared is (∂f/∂p₁ ⋅ δp₁)² + ⋯ 
+    # The stdev squared is ∑(∂f/∂pᵢ ⋅ δpᵢ)² + ⋯
     stdev = sqrt(sumabs2( dds .* param_stdevs))
 end
 
 
+"""
+    fit_line(x,y,yerr)
 
-# function fit_model_multivariate( fit_func::Function
-#                                 , df::DataFrame
-#                                 , initial_params::Vector{Float64}
-#                    ; rescaling::Bool        = false
-#                    , method::Optim.Optimizer = Optim.NelderMead()
-#                    , xcolumn                 = 1
-#                    , ycolumn                 = 2
-#                    , yerrcolumn              = Void
-#                    , xerrcolumn              = Void
-#                    )
-
-#     N, columns = size(df)
-
-#     # First, infer x errors, y errors, x data, etc.
-#     @assert columns >= xcolumn "xcolumn ($xcolumn) > columns ($columns) "
-#     @assert columns >= ycolumn "ycolumn ($ycolumn) > columns ($columns) "
-#     if xerrcolumn != Void
-#         @assert columns >= xerrcolumn "xerrcolumn ($xerrcolumn) > columns ($columns) "
-#     end
-#     if yerrcolumn != Void
-#         @assert columns >= yerrcolumn "yerrcolumn ($yerrcolumn) > columns ($columns) "
-#     end
-
-#     xx   = df[xcolumn]
-#     yy   = df[ycolumn]
-#     xerr = xerrcolumn == Void ? ones(xx) : df[xerrcolumn]
-#     yerr = yerrcolumn == Void ? ones(yy) : df[yerrcolumn]
-
-
-#     # Auxiliar functions
-#     model(xvalues,params) = [fit_func(x,params)::Float64 for x in xvalues]
-
-#     function cost(params)
-#         # Cost function to minimize. Defined as the sum of squares of (y-yᵢ)/σᵢ
-#         csts = ( model(xx,params)-yy )  ./ yerr
-#         return sum(csts.^2)
-#     end
-
-#     # Find the best parameters
-#     opt = Optim.optimize(cost, initial_params, method)
-
-#     best_params = Optim.minimizer(opt)
-
-#     # Compute the jacobian of the function which returns a vector with the
-#     # fit of the model in x = xx (the user x vector), as a function of the parameters.
-#     ypoint(params) = model(xx,params)
-
-#     Jac = Calculus.jacobian(ypoint) 
-#     J = Jac(best_params) # Eval at minimum
-
-#     # Weight matrix
-#     W = diagm(1./(yerr.^2))
-
-#     # Covariance matrix
-#     C = (J'*W*J)^-1
-
-#     # Parameter stdevs
-#     if rescaling
-#         # Residuals should follow a χ² distribution at the minimum.
-#         # The value should be in that case the d.o.f.
-#         dof = N - length(initial_params)
-#         dof < 1 && warn("dof = $dof < 1")
-#         param_stdevs = sqrt(diag(C)*Optim.minimum(opt)/dof)
-#     else
-#         param_stdevs = sqrt(diag(C))
-#     end
-
-#     # Make functions to access the fit with ease
-#     fit_in_point(x) = fit_func(x,best_params)
-#     stdev_in_point(x) = propagate_errors(fit_func,best_params,param_stdevs,x)
-
-#     # Return the fit in its nice container
-#     return FitResult( best_params, # Fit results
-#                       param_stdevs, # Standard deviations at 1 σ
-#                       C, # Covariance of the parameters
-#                       opt.f_minimum, # final sum of residuals
-#                       fit_in_point, # gives value of fit function in x
-#                       stdev_in_point) # gives stderr of fit function in x
-# end
-
-
-# function fit_model_univariate(fit_func::Function
-#                               , df::DataFrame
-#                               , lowerbound::Float64
-#                               , upperbound::Float64
-#                    ; rescaling::Bool         = false
-#                    , method::Optim.Optimizer = Optim.Brent()
-#                    , xcolumn                 = 1
-#                    , ycolumn                 = 2
-#                    , yerrcolumn              = Void
-#                    , xerrcolumn              = Void
-#                    )
-
-#     N, columns = size(df)
-
-#     # First, infer x errors, y errors, x data, etc.
-#     @assert columns >= xcolumn "xcolumn ($xcolumn) > columns ($columns) "
-#     @assert columns >= ycolumn "ycolumn ($ycolumn) > columns ($columns) "
-#     if xerrcolumn != Void
-#         @assert columns >= xerrcolumn "xerrcolumn ($xerrcolumn) > columns ($columns) "
-#     end
-#     if yerrcolumn != Void
-#         @assert columns >= yerrcolumn "yerrcolumn ($yerrcolumn) > columns ($columns) "
-#     end
-
-#     xx   = df[xcolumn]
-#     yy   = df[ycolumn]
-#     xerr = xerrcolumn == Void ? ones(xx) : df[xerrcolumn]
-#     yerr = yerrcolumn == Void ? ones(yy) : df[yerrcolumn]
-
-
-#     # Auxiliar functions
-#     model(xvalues,params) = [fit_func(x,params)::Float64 for x in xvalues]
-
-#     function cost(params)
-#         # Cost function to minimize. Defined as the sum of squares of (y-yᵢ)/σᵢ
-#         csts = ( model(xx,params)-yy )  ./ yerr
-#         return sum(csts.^2)
-#     end
-
-#     # Find the best parameters
-#     opt = Optim.optimize(cost,lowerbound,upperbound,method)
-
-#     best_param = Optim.minimizer(opt)
-
-#     # Compute the jacobian of the function which returns a vector with the
-#     # fit of the model in x = xx (the user x vector), as a function of the parameters.
-#     # In this case, it's just the row vector 
-#     # [∂/∂x f(x_1), ⋯ , ∂/∂x  f(x_n) ]ᵀ
-
-#     Jac(p) = [Calculus.derivative(x->fit_func(x,p),ζ)::Float64 for ζ in xx]
-#     J = Jac(best_param)
-
-#     # Weight matrix
-#     W = diagm(1./(yerr.^2))
-
-#     # Covariance matrix is just an scalar
-#     C = (J'*W*J)[1] |> inv
-
-#     # Parameter stdevs
-#     if rescaling
-#         # Residuals should follow a χ² distribution at the minimum.
-#         # The value should be in that case the d.o.f.
-#         dof = N - 1 # Just one parameter!
-#         dof < 1 && warn("dof = $dof < 1")
-#         param_stdevs = sqrt(C*Optim.minimum(opt)/dof)
-#     else
-#         param_stdevs = sqrt(C)
-#     end
-
-#     # Make functions to access the fit with ease
-#     fit_in_point(x) = fit_func(x,best_param)
-#     stdev_in_point(x) = propagate_errors(fit_func,best_param,param_stdevs,x)
-
-#     # Return the fit in its nice container
-#     return FitResult( [best_param], # Fit results
-#                       [param_stdevs], # Standard deviations at 1 σ
-#                       C*ones(1,1), # Covariance of the parameters
-#                       opt.f_minimum, # final sum of residuals
-#                       fit_in_point, # gives value of fit function in x
-#                       stdev_in_point) # gives stderr of fit function in x
-# end
-
-
-function fit_model_univariate(fit_func::Function
-                              , x::Vector{Float64}
-                              , y::Vector{Float64}
-                              , lowerbound::Float64
-                              , upperbound::Float64
-                              ; xerr                       = Void
-                              , yerr                       = ones(y)
-                              , fitmethod::Optim.Optimizer = Optim.Brent()
-                              , uncertaintymethod::Symbol  = :chisweep
-                              , rescaling                  = false 
-                              )
-
+Fit `x`,`y` arrays to a straight line, with errors
+given by `yerr`. Returns m,n and the covariance
+matrix, where the line of fit is mx+n.
+"""
+function fit_line(x,y,yerr)
     N = length(x)
-    dof = N - 1 # Just one parameter!
+
+    # Compute the parameters
+    function br(f)
+        # By definition, [x] = 1/N Σ x/σ
+        if f != :one
+            vals = [f[i]/yerr[i]^2 for i in 1:N]/N
+            return sum(vals)
+        else
+            myf = [1.0 for i in 1:N]
+            vals = [myf[i]/yerr[i]^2 for i in 1:N]/N
+            return sum(vals)
+        end
+    end
+
+    # Linear regresion parameters
+    m_mean = ( br(:one)*br(x.*y) - br(x)*br(y) )/(  br(:one)*br(x.*x) - br(x)*br(x)  )
+    n_mean = mean(y)-m_mean*mean(x)
+
+    # Covariance matrix
+    covmatrix = zeros(2,2)
+
+    D = br(x.*x)*br(:one) - br(x)*br(x)
+
+    covmatrix[2,2] = 1/(N*D) * br(x.*x)
+    covmatrix[1,2] = -1/(N*D) * br(x)
+    covmatrix[2,1] = -1/(N*D) * br(x)
+    covmatrix[1,1] = 1/(N*D) * br(:one)
+
+    return m_mean, n_mean, covmatrix
+end
+
+"""
+
+    fitmodel_raw(...)
+
+
+General invocation. Usually, wrappers are used.
+Arguments needed (in order, compulsory):
+
+fit_func            Function to fit.
+x                   x values.
+y                   y values.
+initialparams       Initial params or 1D range.
+xerr                x errors or `nothing`.
+yerr                Same for y errors.
+fitmethod           Optimizer to use.
+uncmethod           Or :chisweep or :Jacobian
+rescaling           Boolean.
+fit_kind            :multivariate or :univariate
+
+Should not be used except for developing.
+"""
+function fitmodel_raw(fit_func::Function
+                       , x::Vector{Float64}
+                       , y::Vector{Float64}
+                       , initialparams::Vector{Float64}
+                       , xerr::MaybeFVector
+                       , yerr::Vector{Float64}
+                       , fitmethod
+                       , uncmethod::Symbol
+                       , rescaling::Bool
+                       , fit_kind::Symbol
+                       )
+    const N = length(x)
+    if fit_kind == :univariate
+        const nparameters = 1
+    else
+        const nparameters = length(initialparams)
+    end
+    dof = N - nparameters # Just one parameter!
+    # TODO check how many do you need. More than
+    # one for sure...
     dof < 1 && warn("dof = $dof < 1")
 
     # To save the method description
     unc_method_string = ""
 
     # Auxiliar functions
-    model(xvalues,param) = [fit_func(x,param)::Float64 for x in xvalues]
+    model(xvalues,param) =
+    [fit_func(x,param)::Float64 for x in xvalues]
 
     function cost(param)
-        # Cost function to minimize. Defined as the sum of squares of (y-yᵢ)/σᵢ
+        # Cost function to minimize. Defined as
+        # the sum of squares of (y-yᵢ)/σᵢ
         csts = ( model(x,param)-y )  ./ yerr
         return sum(csts.^2)
     end
 
     # Find the best parameters
-    opt = Optim.optimize(cost,lowerbound,upperbound,fitmethod)
+    if fit_kind == :univariate
+        lowerbound, upperbound = initialparams
+        opt = Optim.optimize(cost,lowerbound,upperbound,fitmethod)
+    elseif fit_kind == :multivariate
+        opt = Optim.optimize(cost,initialparams,fitmethod)
+    end
 
     best_param = Optim.minimizer(opt)
+    # For consistency, ensure it's a vector
+    if typeof(best_param) != Vector{Float64}
+        best_param = [best_param]
+    end
 
-    if xerr != Void
+    # If needed, Orear things
+    if xerr != nothing
         error("Orear's effective variances not implemented yet")
     end
 
-    # Time to stimate the errors.
-    if uncertaintymethod == :jacobian
+    # Time to estimate the errors.
+    if uncmethod == :jacobian
         unc_method_string = "Jacobian"
         # Compute the jacobian of the function which returns a vector
         # with the fit of the model in x = xx (the user x vector), as
         # a function of the parameters.
-        # In the 1D case, it's just the row vector 
-        # [∂/∂x f(x_1), ⋯ , ∂/∂x  f(x_n) ]ᵀ
-
-        Jac(p) = [Calculus.derivative(x->fit_func(x,p),ζ)::Float64 for ζ in x]
-        J = Jac(best_param)
-
+        if fit_kind == :univariate
+            # In the 1D case, it's just the row vector 
+            # [∂/∂x f(x_1), ⋯ , ∂/∂x  f(x_n) ]ᵀ
+            Jac(p) = [Calculus.derivative(x->fit_func(x,p),ζ)::Float64 for ζ in x]
+            J = Jac(best_param[1]) # Eval at minimum
+        elseif fit_kind == :multivariate
+            Jac = Calculus.jacobian(param->model(x,param)) 
+            J = Jac(best_param) 
+        end
         # Weight matrix
         W = diagm(1./(yerr.^2))
-
-        # Covariance matrix is just an scalar
-        C = (J'*W*J)[1] |> inv
-        C = fill(C,1,1)
-
-        # Stdevs follow from C
-        param_stdevs = [sqrt(C[1])]
-    elseif uncertaintymethod == :chisweep
+        # Covariance
+        if fit_kind == :univariate
+            C = 1/(J'*W*J)[1]
+            param_stdevs = [sqrt(C)]
+            # Make the covariance a matrix
+            C = fill(C,1,1)
+        elseif fit_kind == :multivariate
+            C = (J'*W*J) |> inv
+            param_stdevs = [sqrt(c) for c in diag(C)]
+        end
+    elseif uncmethod == :chisweep
         unc_method_string = "χ² sweeping"
         # We won't have covariance
         C = nothing
-        # The variance of χ² is just twice it's mean, or we hope so.
-        # Find that point in the cost function, wich is ∼χ²:
-        onestddeviation = √2*Optim.minimum(opt)
-        chifit = optimize(x->abs(cost(x)-onestddeviation)
-                          ,best_param[1]*(1-10)
-                          ,best_param[1]*(1+10)
-                          )
-        parameterstdev = Optim.minimizer(chifit)
-        # We have truncated the search at a maximum deviation of
-        # 1000%. Warn the user if that is the case.
-        if abs((parameterstdev - best_param)/best_param) > 9
-            warn(
+        # The variance of a χ² distributed thing
+        # is just twice it's mean, or we hope so.
+        param_stdevs = Vector{Float64}(nparameters)
+        for i in 1:nparameters
+            # Find that point in the cost function,
+            # wich is ≃ χ²:
+            onestddeviation = √2*Optim.minimum(opt)
+            bounds = [best_param[i]*(1-10)
+                      best_param[i]*(1+10)]
+            sort!(bounds)
+            # Build a function constant in all
+            # params except the explored one
+            function explorer(p)
+                v = copy(best_param)
+                v[i] = p
+                return abs(cost(v)-onestddeviation)
+            end
+            chifit = optimize(explorer
+                              , bounds[1]
+                              , bounds[2]
+                              )
+            # Now we now the variance, which is
+            # twice the value found minus the
+            # "mean" point:
+            paramdev = Optim.minimizer(chifit)
+            parameterstdev =
+            sqrt(2*abs(paramdev - best_param[i]))
+            # We have truncated the search at a maximum deviation of
+            # 1000%. Warn the user if that is the case.
+            if abs((paramdev - best_param[i])/best_param[i]) > MAX_PARAM_DEV
+                warn(
 """
-The deviation of the parameter is superior to 900%.
+The deviation of the $(i)th parameter is superior to 900%.
 It will be truncated at 1000%.
 """
-                 )
+                     )
+            end
+            # Return stdev
+            param_stdevs[i] = abs(best_param[i]-parameterstdev)
         end
-        # Return stdev
-        param_stdevs = [abs(best_param - parameterstdev)]
     else
-        error("Unsuported method $uncertaintymethod for the uncertainty estimation")
+        error(
+"Unsuported method $uncmethod for the
+uncertainty estimation"
+              )
     end
 
     if rescaling
@@ -284,7 +232,7 @@ It will be truncated at 1000%.
 
     # Parameter stdevs
     return FitResult(
-                       [best_param]        # Fit results
+                       best_param          # Fit results
                      , param_stdevs        # Deviations found
                      , fit_func            # Function used to fit
                      , opt                 # Optim result
@@ -297,72 +245,152 @@ It will be truncated at 1000%.
 end
 
 
+"""
 
-# function fit_model_multivariate(fit_func::Function
-#                                 , x::Vector{Float64}
-#                                 , y::Vector{Float64}
-#                                 , initialparams::Vector{Float64}
-#                                 ; xerr                       = Void
-#                                 , yerr                       = ones(y)
-#                                 , fitmethod::Optim.Optimizer = Optim.NelderMead()
-#                                 , rescaling                  = false 
-#                                 )
+    fitmodel(f, x, y, from, to)
 
-#     # Auxiliar functions
-#     model(xvalues,param) = [fit_func(x,param)::Float64 for x in xvalues]
+Fit a 1D model. Optional parameters are:
+  xerr               errors in x
+  yerr               errors in y
+  fitmethod          Custom `Optim.Optimizer()` to
+                     use. Defaults to Brent().
+  uncmethod          Or `:chisweep` (default) or `:jacobian`
+  rescaling          Force red.χ² = 1 in the minimum. Enabled
+                     by default if there are no x or y errors.
+"""
+function fitmodel(fit_func::Function
+                              , x
+                              , y
+                              , from
+                              , to
+                              ; xerr = nothing
+                              , yerr = nothing
+                              , fitmethod = nothing
+                              , uncmethod::MaybeSymbol = nothing
+                              , rescaling::MaybeBool = nothing
+                              )
+    fit_kind = :univariate
 
-#     function cost(param)
-#         # Cost function to minimize. Defined as the sum of squares of (y-yᵢ)/σᵢ
-#         csts = ( model(x,param)-y )  ./ yerr
-#         return sum(csts.^2)
-#     end
+    # Enable rescaling if needed
+    if rescaling == nothing
+        if xerr == nothing && yerr == nothing
+            rescaling = true
+        else
+            rescaling = false
+        end
+    end
+    # We are in a 1D fit
+    initialparams = [Float64(from), Float64(to)]
 
-#     # Find the best parameters
-#     opt = Optim.optimize(cost,initialparams,fitmethod)
+    # Everything to Float64
+    x = [Float64(ζ) for ζ in x]
+    y = [Float64(ζ) for ζ in y]
 
-#     best_param = Optim.minimizer(opt)
+    if xerr != nothing
+        xerr = [Float64(ζ) for ζ in xerr]
+    end
 
-#     if xerr != Void
-#         error("Orear's effective variances not implemented yet")
-#     end
+    if yerr != nothing
+        yerr = [Float64(ζ) for ζ in xerr]
+    else
+        yerr = ones(x)
+    end
 
-#     # Compute the jacobian of the function which returns a vector with the
-#     # fit of the model in x (the user x vector), as a function of the parameters.
+    # Get an optimizer and an uncertainty method
+    if fitmethod == nothing
+        fitmethod = Optim.Brent()
+    end
+    if uncmethod == nothing
+        uncmethod = :chisweep
+    end
 
-#     Jac = Calculus.jacobian(param->model(x,param)) 
-#     J = Jac(best_param) # Eval at minimum
 
-#     # Weight matrix
-#     W = diagm(1./(yerr.^2))
+    # Invoke the main function
+    fitmodel_raw(fit_func::Function
+                  , x::Vector{Float64}
+                  , y::Vector{Float64}
+                  , initialparams::Vector{Float64}
+                  , xerr::MaybeFVector
+                  , yerr::Vector{Float64}
+                  , fitmethod
+                  , uncmethod::Symbol
+                  , rescaling::Bool
+                  , fit_kind::Symbol
+                  )
+end
 
-#     # Covariance matrix
-#     C = (J'*W*J)^-1
 
-#     # Parameter stdevs
-#     N = length(x)
-#     dof = N - length(initialparams)
-#     dof < 1 && warn("dof = $dof < 1")
-#     if rescaling
-#         unc_method_string = "Jacobian with rescaling"
-#         # Residuals should follow a χ² distribution at the minimum.
-#         # The value should be in that case the d.o.f.
-#         param_stdevs = sqrt(diag(C)*Optim.minimum(opt)/dof)
-#     else
-#         unc_method_string = "Jacobian without rescaling"
-#         param_stdevs = sqrt(diag(C))
-#     end
+"""
 
-#     return FitResult(
-#                        best_param          # Fit results
-#                      , param_stdevs        # Deviations found
-#                      , fit_func            # Function used to fit
-#                      , opt                 # Optim result
-#                      , cost                # Cost function
-#                      , 1                   # n of fit parameters
-#                      , C                   # Estimation of the covariance
-#                      , unc_method_string   # Uncertainty estimation method
-#                      , dof                 # Degrees of freedom
-#                      )
+    fitmodel(f, x, y, [initalparams])
 
-# end
+Fit a ND model, with N>1. Optional parameters are:
+  xerr               errors in x
+  yerr               errors in y
+  fitmethod          Custom `Optim.Optimizer()` to
+                     use. Defaults to NelderMead()
+  uncmethod          Or `:chisweep` (default) or `:jacobian`
+  rescaling          Force red.χ² = 1 in the minimum. Enabled
+                     by default if there are no x or y errors.
+"""
+function fitmodel(fit_func::Function
+                       , x
+                       , y
+                       , initialparams
+                       ; xerr = nothing
+                       , yerr = nothing
+                       , fitmethod = nothing
+                       , uncmethod::MaybeSymbol = nothing
+                       , rescaling::MaybeBool = nothing
+                       )
+    fit_kind = :multivariate
 
+    # Enable rescaling if needed
+    if rescaling == nothing
+        if xerr == nothing && yerr == nothing
+            rescaling = true
+        else
+            rescaling = false
+        end
+    end
+
+
+    # Everything to Float64
+    x = [Float64(ζ) for ζ in x]
+    y = [Float64(ζ) for ζ in y]
+
+    if xerr != nothing
+        xerr = [Float64(ζ) for ζ in xerr]
+    end
+
+    if yerr != nothing
+        yerr = [Float64(ζ) for ζ in xerr]
+    else
+        yerr = ones(x)
+    end
+
+    initialparams = [Float64(ζ) for ζ in initialparams]
+
+    # Get an optimizer and an uncertainty method
+    if fitmethod == nothing
+        fitmethod = Optim.NelderMead()
+    end
+    if uncmethod == nothing
+        uncmethod = :chisweep
+    end
+
+
+    # Invoke the main function
+    fitmodel_raw(fit_func::Function
+                  , x::Vector{Float64}
+                  , y::Vector{Float64}
+                  , initialparams::Vector{Float64}
+                  , xerr::MaybeFVector
+                  , yerr::Vector{Float64}
+                  , fitmethod
+                  , uncmethod::Symbol
+                  , rescaling::Bool
+                  , fit_kind::Symbol
+                  )
+
+end
