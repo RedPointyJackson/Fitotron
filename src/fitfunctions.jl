@@ -230,10 +230,16 @@ uncertainty estimation"
         unc_method_string = "$unc_method_string (unrescaled)"
     end
 
+    if xerr == nothing
+        data = [x y yerr]
+    else
+        data = [x y yerr xerr]
+    end
 
     # Parameter stdevs
     return FitResult(
-                       best_param          # Fit results
+                       data                # Columns with x,y[,yerr,xerr]
+                     , best_param          # Fit results
                      , param_stdevs        # Deviations found
                      , fit_func            # Function used to fit
                      , opt                 # Optim result

@@ -7,6 +7,7 @@ export fitmodel, plotfit
 using Optim
 using Calculus
 using DataFrames
+using Gadfly
 import Base.show
 
 # Constants
@@ -22,6 +23,7 @@ MaybeSymbol    = Union{Symbol                 , Void}
 
 # Container of fit results
 immutable FitResult
+    data::Matrix{Float64}                 # Columns with x,y,yerr[,xerr]
     param_results::Vector{Float64}        # Fit results
     param_deviations::Vector{Float64}     # Deviations found
     fit_func::Function                    # Function used to fit
@@ -50,5 +52,6 @@ function show(io::IO, r::FitResult)
 end
 
 include("fitfunctions.jl")
+include("fitutils.jl")
 
 end # module
