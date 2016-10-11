@@ -21,6 +21,7 @@ end
 
 
 """
+
     fit_line(x,y,yerr)
 
 Fit `x`,`y` arrays to a straight line, with errors
