@@ -49,6 +49,7 @@ function plotfit(fit::FitResult)
                           ,y    = y
                           ,ymax = ymax
                           ,ymin = ymin
+                          ,Geom.point
                           ,Geom.errorbar
                           )
     else
