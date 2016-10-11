@@ -94,12 +94,15 @@ function fitmodel_raw(fit_func::Function
                        , fit_kind::Symbol
                        )
     const N = length(x)
+
     if fit_kind == :univariate
         const nparameters = 1
     else
         const nparameters = length(initialparams)
     end
+
     dof = N - nparameters # Just one parameter!
+
     # TODO check how many do you need. More than
     # one for sure...
     dof < 1 && warn("dof = $dof < 1")
@@ -108,8 +111,10 @@ function fitmodel_raw(fit_func::Function
     unc_method_string = ""
 
     # Auxiliar functions
+    # The [1] fixes a bug with functions of the style p*x instead of
+    # p[1]*x.
     model(xvalues,param) =
-    [fit_func(x,param)::Float64 for x in xvalues]
+    [fit_func(x,param)[1]::Float64 for x in xvalues]
 
     function cost(param)
         # Cost function to minimize. Defined as
@@ -298,7 +303,7 @@ function fitmodel(fit_func::Function
     end
 
     if yerr != nothing
-        yerr = [Float64(ζ) for ζ in xerr]
+        yerr = [Float64(ζ) for ζ in yerr]
     else
         yerr = ones(x)
     end
@@ -371,7 +376,7 @@ function fitmodel(fit_func::Function
     end
 
     if yerr != nothing
-        yerr = [Float64(ζ) for ζ in xerr]
+        yerr = [Float64(ζ) for ζ in yerr]
     else
         yerr = ones(x)
     end

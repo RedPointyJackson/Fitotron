@@ -64,29 +64,29 @@ end
 
         # With fitmodel_raw
         ft = Fitotron.fitmodel_raw(
-                                    f
-                                    , x
-                                    , y
-                                    , [1.0, 100.0]
-                                    , nothing
-                                    , ones(x)
-                                    , Optim.Brent()
-                                    , :chisweep
-                                    , false
-                                    , :univariate
-                                    )
+                                   f
+                                   , x
+                                   , y
+                                   , [1.0, 100.0]
+                                   , nothing
+                                   , ones(x)
+                                   , Optim.Brent()
+                                   , :chisweep
+                                   , false
+                                   , :univariate
+                                   )
         res = ft.param_results
         @test norm(res-4.2) < 1e-6
         # Notice the norm, despite being L=1 is still a vector
 
         # Do it also with the user interface
         ft = Fitotron.fitmodel(
-                                f
-                                , x
-                                , y
-                                , -10
-                                , 100
-                                )
+                               f
+                               , x
+                               , y
+                               , -10
+                               , 100
+                               )
         res = ft.param_results
         @test norm(res-4.2) < 1e-6
 
@@ -101,26 +101,26 @@ end
         g(x,p) = x^p[1] + p[2]
         # With fitmodel_raw
         ft = Fitotron.fitmodel_raw(
-                                    g
-                                    , x
-                                    , y
-                                    , [1.0, 1.0]
-                                    , nothing
-                                    , ones(x)
-                                    , Optim.NelderMead()
-                                    , :chisweep
-                                    , false
-                                    , :multivariate
-                                    )
+                                   g
+                                   , x
+                                   , y
+                                   , [1.0, 1.0]
+                                   , nothing
+                                   , ones(x)
+                                   , Optim.NelderMead()
+                                   , :chisweep
+                                   , false
+                                   , :multivariate
+                                   )
         res = ft.param_results
         @test norm(res-[2.0,0.0]) < 1e-5
         # # Do it also with the user interface
         ft = Fitotron.fitmodel(
-                                g
-                                , x
-                                , y
-                                , [1, 1]
-                                )
+                               g
+                               , x
+                               , y
+                               , [1, 1]
+                               )
         res = ft.param_results
         @test norm(res-[2.0,0.0]) < 1e-5
 
@@ -136,31 +136,30 @@ end
         h(x,p) = p[1]*x^p[2] + p[3]
         # With fitmodel_raw
         ft = Fitotron.fitmodel_raw(
-                                    h
-                                    , x
-                                    , y
-                                    , [1.0, 1.0, 1.0]
-                                    , nothing
-                                    , ones(x)
-                                    , Optim.NelderMead()
-                                    , :chisweep
-                                    , false
-                                    , :multivariate
-                                    )
+                                   h
+                                   , x
+                                   , y
+                                   , [1.0, 1.0, 1.0]
+                                   , nothing
+                                   , ones(x)
+                                   , Optim.NelderMead()
+                                   , :chisweep
+                                   , false
+                                   , :multivariate
+                                   )
         res = ft.param_results
         @test norm(res-[1.0, 1.7, π]) < 1e-3
         # # Do it also with the user interface
         ft = Fitotron.fitmodel(
-                                h
-                                , x
-                                , y
-                                , [1, 1, 1]
-                                )
+                               h
+                               , x
+                               , y
+                               , [1, 1, 1]
+                               )
         res = ft.param_results
         @test norm(res-[1.0, 1.7, π]) < 1e-5
 
     end
-
     @testset "Uncertainty" begin
         ############################
         #                          #
@@ -194,17 +193,36 @@ end
         g(x,p) = p[1]*abs(x)^p[2]
         # χ sweep
         ftchi = Fitotron.fitmodel(
-                                 g ,x ,y, ones(2)
-                                 , uncmethod = :chisweep
-                                )
+                                  g ,x ,y, ones(2)
+                                  , uncmethod = :chisweep
+                                  )
         ftjac = Fitotron.fitmodel(
-                                 g ,x ,y, ones(2)
-                                 , uncmethod = :jacobian
-                                )
+                                  g ,x ,y, ones(2)
+                                  , uncmethod = :jacobian
+                                  )
         devchi = ftchi.param_deviations
         devjac = ftjac.param_deviations
         @test norm(devchi) < 1e-5
         @test norm(devjac) < 1e-5
+    end
+    @testset "Bugs" begin
+        x    = randn(50)
+        y    = 2x + randn(50)
+        yerr = randn(50)
+        # yerr are ignored (last seen in 12b1a9b).
+        f(x,p) = p[1]*x+p[2]
+        g(x,p) = p[1]*x
+        data_multi = Fitotron.fitmodel(f,x,y,[1,1]
+                                       ,yerr=yerr).data
+        data_mono = Fitotron.fitmodel(g,x,y,0,3
+                                      ,yerr=yerr).data
+        @test data_multi[:,3] == yerr
+        @test data_mono[:,3] == yerr
+        # using non-vectorized functions for univariate fit (last seen
+        # in 12b1a9b).
+        h(x,α) = α*x
+        ft = Fitotron.fitmodel(h,x,y,0,3)
+        @test isa(ft,Fitotron.FitResult)
     end
 end
 
