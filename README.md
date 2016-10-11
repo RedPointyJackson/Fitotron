@@ -1,77 +1,46 @@
-Fitotron
-===========
+# Fitotron
 
 Fitotron provides ordinary least squares with a simple interface. It
-uses a Nelder-Mead method to find the optimum parameters of the fit.
+uses a Nelder-Mead method (or a Brent method, in univariate fits) to
+find the optimum parameters of the fit.
 
-It can (optionaly) rescale the parameter uncertainties using the minimum value of the sum of residuals function.
+It can rescale the parameter uncertainties using the
+minimum value of the sum of residuals function; this is the default
+behaivour when y errors are not provided, although it can be disabled.
 
-Usage
------------
-
-We load the necesary libs:
+## Usage
+In a REPL, type:
 
 ```jl
 using Fitotron
-using DataFrames
-using Gadfly # To see the results
-```
-We read the data from a plain text file and create the fit function:
 
-```jl
-# Read the data
-df = readtable("data.dat",header=false,separator='\t')
+srand(42)
+const N = 50
+x = linspace(0,1,N) |> collect
+y = x + 0.05randn(N)
 
-# Create the fit model
-fit_fun(x,params) = params[1] + params[2]*cos(params[3]*x-params[4])
-```
+fun(x,p) = p[1] + p[2]*x
+fit = fitmodel(fun,x,y,[1,1])
 
-We call the fitting function:
-
-```jl
-# Fit it 
-fit_result = fit_model(fit_fun,df,[1.0,1.0,0.1,1.0])
-```
-An optional argument `rescale`, that can be true or false, makes the minimum of
-the sum of the residues squared be the number of degrees of freedom (minus the
-number of parameters) at the minimum. In other words; if enabled, the parameter
-standard deviations will be multiplied by the root of S/(dof), where dof is the
-number of datapoints minus the number of parameters and S is the residue of the
-cost function minimization.
-
-The returned `fit_result` contains in its fields all the available data:
-
-
-* `param_results`  Fit results
-* `param_stdevs`  Standard deviations at 1 σ
-* `covariance`  Covariance of the parameters
-* `resid` final sum of residuals
-* `fit_value` gives value of fit function in x
-* `fit_stdev` gives stderr of fit function in x
-
-We can create a plot to see the results, with the help of the `fit_value` and `fit_stdev` functions:
-
-```jl
-# See the result. Create a dataframe with the fit results:
-xx = linspace(minimum(df[1]),maximum(df[1]),100)
-yy = [fit_result.fit_value(x)::Float64 for x in xx]
-ss = [fit_result.fit_stdev(x)::Float64 for x in xx]
-
-
-df_fit = DataFrame( x = xx,
-		    y = yy,
-		    ymin = yy-ss,
-		    ymax = yy+ss)
-
-# We also need the data in a dataframe:
-df_data = DataFrame( x = df[1],
-		    y = df[2],
-		    ymin = df[2]-df[3],
-		    ymax = df[2]+df[3])
-
-plot(
-     layer(df_data,x=:x,y=:y,ymin=:ymin,ymax=:ymax,Geom.errorbar),
-     layer(df_fit,x=:x,y=:y,ymin=:ymin,ymax=:ymax,Geom.ribbon))
+p = plotfit(fit)
 ```
 
-![Fitted!](http://i.imgur.com/mp9XHYw.png)
+`p` will be a `Gadfly.Plot` like the following:
+![fit result](https://github.com/RedPointyJackson/Fitotron/blob/master/fitresult.png)
+
+
+And a `fit` a `FitResult` that shows like
+```
+Fit results:
+─────────────────────────────────────────────────────────
+Param. 1:                       -1.40e-02 ± 1.55e-02
+Param. 2:                       1.02e+00 ± 3.76e-02
+Reduced χ²:                     0.0030915027388933136
+Parameter estimation method:    Nelder-Mead
+Uncertainty estimation method:  χ² sweeping (rescaled)
+```
+in the REPL.
+
+## Caveats
+The uncertainty estimation is very different to `gnuplot`'s one, for
+example, and a lot of times very pessimistic.
