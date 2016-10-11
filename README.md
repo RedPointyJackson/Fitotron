@@ -26,6 +26,7 @@ p = plotfit(fit)
 ```
 
 `p` will be a `Gadfly.Plot` like the following:
+
 ![fit result](https://github.com/RedPointyJackson/Fitotron/blob/master/fitresult.png)
 
 
@@ -40,6 +41,11 @@ Parameter estimation method:    Nelder-Mead
 Uncertainty estimation method:  χ² sweeping (rescaled)
 ```
 in the REPL.
+
+There are two posible invocations, for univariate and multivariate
+fits. Use `?fitmodel` to see the documentation.
+
+The function used to fit should be in the form `f(x,p)` where `p` is the vector containing the parameters.
 
 ## Caveats
 The uncertainty estimation is very different to `gnuplot`'s one, for
