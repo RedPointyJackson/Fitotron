@@ -143,13 +143,13 @@ function fitmodel_raw(fit_func::Function
         # with the fit of the model in x = xx (the user x vector), as
         # a function of the parameters.
         if fit_kind == :univariate
-            # In the 1D case, it's just the row vector 
+            # In the 1D case, it's just the row vector
             # [∂/∂x f(x_1), ⋯ , ∂/∂x  f(x_n) ]ᵀ
             Jac(p) = [Calculus.derivative(x->fit_func(x,p),ζ)::Float64 for ζ in x]
             J = Jac(best_param[1]) # Eval at minimum
         elseif fit_kind == :multivariate
-            Jac = Calculus.jacobian(param->model(x,param)) 
-            J = Jac(best_param) 
+            Jac = Calculus.jacobian(param->model(x,param))
+            J = Jac(best_param)
         end
         # Weight matrix
         W = diagm(1./(yerr.^2))
@@ -220,7 +220,7 @@ uncertainty estimation"
         # multiply yerr by sqrt(χmin/dof). And that implies that the
         # σ's get multiplied by that also.
         factor = sqrt(Optim.minimum(opt)/dof)
-        if C != nothing 
+        if C != nothing
             C *= factor
         end
         param_stdevs *= factor

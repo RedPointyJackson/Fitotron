@@ -27,7 +27,7 @@ end
     y    = linspace(0,10,20)
     yerr = 0.02ones(20)
     m,n,C = Fitotron.fit_line(x,y,yerr)
-    analyticC = 
+    analyticC =
         [2.171428571428572e-6 -1.0857142857142861e-5
          -1.0857142857142861e-5 7.428571428571431e-5]
     @test m ≈ 1
@@ -39,7 +39,7 @@ end
     y    = [1,2,3,8,5,6,7,8,9]
     yerr = [0.1,0.2,0.3,0.8,0.5,.06,0.7,0.8,0.9]
     m,n,C = Fitotron.fit_line(x,y,yerr)
-    analyticC = 
+    analyticC =
         [ 0.0004785877394248638 -0.0021591099755238854
           -0.0021591099755238854 0.012097533052456966 ]
     @test m ≈ 0.998470256138598
@@ -55,7 +55,7 @@ end
         #                          #
         ############################
         # Fit a 1D function, handmade example
-        x = linspace(0.01,1,10) |> collect 
+        x = linspace(0.01,1,10) |> collect
         # We don't use 0 because finite differences
         # will use -0.001 and f isn't defined there
         y = x.^4.2
@@ -166,10 +166,10 @@ end
         #             1D           #
         #                          #
         ############################
-        x = linspace(0.01,1,10) |> collect 
+        x = linspace(0.01,1,10) |> collect
         y = x.^3
         f(x,p) = x^p[1]
-        ft = Fitotron.fitmodel( 
+        ft = Fitotron.fitmodel(
                                  f ,x ,y, -10 ,100
                                  , uncmethod = :chisweep
                                 )
@@ -182,11 +182,11 @@ end
         #             2D           #
         #                          #
         ############################
-        x = linspace(0.01,1,1000) |> collect 
+        x = linspace(0.01,1,1000) |> collect
         y = x.^3
         g(x,p) = p[1]*abs(x)^p[2]
         # χ sweep
-        ft = Fitotron.fitmodel( 
+        ft = Fitotron.fitmodel(
                                  g ,x ,y, ones(2)
                                  , uncmethod = :chisweep
                                 )
