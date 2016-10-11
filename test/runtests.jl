@@ -1,6 +1,7 @@
 using Base.Test
 using Fitotron
 
+srand(42)
 
 @testset "Error propagation" begin
     # Error propagation, 1D, handmade example
@@ -169,14 +170,20 @@ end
         x = linspace(0.01,1,10) |> collect
         y = x.^3
         f(x,p) = x^p[1]
-        ft = Fitotron.fitmodel(
-                                 f ,x ,y, -10 ,100
-                                 , uncmethod = :chisweep
-                                )
+        ftchi = Fitotron.fitmodel(
+                                  f ,x ,y, -10 ,100
+                                  , uncmethod = :chisweep
+                                  )
+        ftjac = Fitotron.fitmodel(
+                                  f ,x ,y, -10 ,100
+                                  , uncmethod = :jacobian
+                                  )
         # Results are reescaled (no yerr) so the
         # #error must be ridiculous.
-        dev = ft.param_deviations
-        @test norm(dev) < 1e-8
+        devchi = ftchi.param_deviations
+        devjac = ftjac.param_deviations
+        @test norm(devchi) < 1e-8
+        @test norm(devjac) < 1e-8
         ############################
         #                          #
         #             2D           #
@@ -186,11 +193,34 @@ end
         y = x.^3
         g(x,p) = p[1]*abs(x)^p[2]
         # χ sweep
-        ft = Fitotron.fitmodel(
+        ftchi = Fitotron.fitmodel(
                                  g ,x ,y, ones(2)
                                  , uncmethod = :chisweep
                                 )
-        dev = ft.param_deviations
-        @test norm(dev) < 1e-5
+        ftjac = Fitotron.fitmodel(
+                                 g ,x ,y, ones(2)
+                                 , uncmethod = :jacobian
+                                )
+        devchi = ftchi.param_deviations
+        devjac = ftjac.param_deviations
+        @test norm(devchi) < 1e-5
+        @test norm(devjac) < 1e-5
     end
+end
+
+
+@testset "Plotting tests" begin
+    const N = 50
+
+    x1 = linspace(0,1,N) |> collect
+    y1 = x1.^3 + 0.1randn(N)
+    f1(x,p) = p[1]*x^p[2]
+    fit1 = fitmodel(f1,x1,y1,[1,1])
+    @test isa(plotfit(fit1),Gadfly.Plot)
+
+    x2 = linspace(0,1,N) |> collect
+    y2 = x2 + 0.1randn(N) + 2
+    f2(x,p) = p[1]*x + p[2]
+    fit2 = fitmodel(f2,x2,y2,[1,1])
+    @test isa(plotfit(fit2),Gadfly.Plot)
 end
