@@ -16,10 +16,10 @@ using Fitotron
 
 srand(42)
 const N = 50
-x = linspace(0,1,N) |> collect
-y = x + 0.05randn(N)
+x = linspace(0,2π,N) |> collect
+y = sin(x) + 0.5randn(N)
 
-fun(x,p) = p[1] + p[2]*x
+fun(x,p) = p[1] +p[2]*x
 fit = fitmodel(fun,x,y,[1,1])
 
 p = plotfit(fit)
@@ -34,13 +34,13 @@ And a `fit` a `FitResult` that shows like
 ```
 Fit results:
 ─────────────────────────────────────────────────────────
-Param. 1:                       -1.40e-02 ± 1.55e-02
-Param. 2:                       1.02e+00 ± 3.76e-02
-Reduced χ²:                     0.0030915027388933136
+Param. 1:                       7.57e-01 ± 5.31e-01
+Param. 2:                       -2.49e-01 ± 1.77e-01
+Reduced χ²:                     0.4950205376301822
 Parameter estimation method:    Nelder-Mead
 Uncertainty estimation method:  χ² sweeping (rescaled)
 ```
-in the REPL.
+in the REPL. A fit to a sine would be better, indeed.
 
 There are two posible invocations, for univariate and multivariate
 fits. Use `?fitmodel` to see the documentation.

@@ -179,7 +179,7 @@ function fitmodel_raw(fit_func::Function
         for i in 1:nparameters
             # Find that point in the cost function,
             # wich is ≃ χ²:
-            onestddeviation = √2*Optim.minimum(opt)
+            onestddeviation = √(2*Optim.minimum(opt))
             bounds = [best_param[i]*(1-10)
                       best_param[i]*(1+10)]
             sort!(bounds)
