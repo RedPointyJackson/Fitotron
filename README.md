@@ -65,7 +65,7 @@ and
 ![sine fit result](https://github.com/RedPointyJackson/Fitotron/blob/master/fitresult_sine.png)
 
 The Jacobian method of error estimation (`uncmethod=:jacobian` in
-`fitmodel`)gives errors that are a lot
+`fitmodel`) gives errors that are a lot
 less conservative:
 ```
 Fit results:
@@ -79,7 +79,8 @@ Parameter estimation method:    Nelder-Mead
 Uncertainty estimation method:  Jacobian (rescaled)
 ```
 and
-![sine fit result (jacobian)](https://github.com/RedPointyJackson/Fitotron/blob/master/fitresult_jac.png)
+
+![sine fit result (jacobian)](https://github.com/RedPointyJackson/Fitotron/blob/master/fitresult_sine_jac.png)
 
 There are two posible invocations, one for univariate fits and other for multivariate
 ones. Use `?fitmodel` to see the documentation.
