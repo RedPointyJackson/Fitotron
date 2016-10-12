@@ -40,13 +40,52 @@ Reduced χ²:                     0.4950205376301822
 Parameter estimation method:    Nelder-Mead
 Uncertainty estimation method:  χ² sweeping (rescaled)
 ```
-in the REPL. A fit to a sine would be better, indeed.
+in the REPL. A fit to a sine would be better, indeed:
 
-There are two posible invocations, for univariate and multivariate
-fits. Use `?fitmodel` to see the documentation.
+```julia
+sine(x,p) = p[1] + p[2]*sin(p[3]*x+p[4])
+fit = fitmodel(sine,x,y,ones(4))
+plotfit(fit)
+```
+
+Which gives:
+```
+Fit results:
+─────────────────────────────────────────────────────────
+Param. 1:                       -3.04e-02 ± 1.89e-02
+Param. 2:                       9.16e-01 ± 5.09e-01
+Param. 3:                       1.03e+00 ± 6.97e-01
+Param. 4:                       7.75e-02 ± 4.11e-02
+Reduced χ²:                     0.30947383110883564
+Parameter estimation method:    Nelder-Mead
+Uncertainty estimation method:  χ² sweeping (rescaled)
+```
+and
+
+![sine fit result](https://github.com/RedPointyJackson/Fitotron/blob/master/fitresult_sine.png)
+
+The Jacobian method of error estimation (`uncmethod=:jacobian` in
+`fitmodel`)gives errors that are a lot
+less conservative:
+```
+Fit results:
+─────────────────────────────────────────────────────────
+Param. 1:                       -3.04e-02 ± 7.92e-02
+Param. 2:                       9.16e-01 ± 1.16e-01
+Param. 3:                       1.03e+00 ± 6.06e-02
+Param. 4:                       7.75e-02 ± 2.31e-01
+Reduced χ²:                     0.30947383110883564
+Parameter estimation method:    Nelder-Mead
+Uncertainty estimation method:  Jacobian (rescaled)
+```
+and
+![sine fit result (jacobian)](https://github.com/RedPointyJackson/Fitotron/blob/master/fitresult_jac.png)
+
+There are two posible invocations, one for univariate fits and other for multivariate
+ones. Use `?fitmodel` to see the documentation.
 
 The function used to fit should be in the form `f(x,p)` where `p` is the vector containing the parameters.
 
 ## Caveats
-The uncertainty estimation is very different to `gnuplot`'s one, for
+The chi sweep uncertainty estimation is very different to `gnuplot`'s one, for
 example, and a lot of times very pessimistic.
