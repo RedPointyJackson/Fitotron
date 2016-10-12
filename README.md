@@ -11,7 +11,7 @@ behaivour when y errors are not provided, although it can be disabled.
 ## Usage
 In a REPL, type:
 
-```jl
+```julia
 using Fitotron
 
 srand(42)
@@ -33,9 +33,9 @@ p = plotfit(fit)
 And a `fit` a `FitResult` that shows like
 ```
 Fit results:
-─────────────────────────────────────────────────────────
-Param. 1:                       7.57e-01 ± 5.31e-01
-Param. 2:                       -2.49e-01 ± 1.77e-01
+───────────────────────────────────────────────────────────────
+Param. 1:                       +7.57e-01 ± 5.31e-01 (70.1%)
+Param. 2:                       -2.49e-01 ± 1.77e-01 (71.0%)
 Reduced χ²:                     0.4950205376301822
 Parameter estimation method:    Nelder-Mead
 Uncertainty estimation method:  χ² sweeping (rescaled)
@@ -51,11 +51,11 @@ plotfit(fit)
 Which gives:
 ```
 Fit results:
-─────────────────────────────────────────────────────────
-Param. 1:                       -3.04e-02 ± 1.89e-02
-Param. 2:                       9.16e-01 ± 5.09e-01
-Param. 3:                       1.03e+00 ± 6.97e-01
-Param. 4:                       7.75e-02 ± 4.11e-02
+───────────────────────────────────────────────────────────────
+Param. 1:                       -3.04e-02 ± 1.89e-02 (62.1%)
+Param. 2:                       +9.16e-01 ± 5.09e-01 (55.6%)
+Param. 3:                       +1.03e+00 ± 6.97e-01 (67.9%)
+Param. 4:                       +7.75e-02 ± 4.11e-02 (53.0%)
 Reduced χ²:                     0.30947383110883564
 Parameter estimation method:    Nelder-Mead
 Uncertainty estimation method:  χ² sweeping (rescaled)
@@ -69,11 +69,11 @@ The Jacobian method of error estimation (`uncmethod=:jacobian` in
 less conservative:
 ```
 Fit results:
-─────────────────────────────────────────────────────────
-Param. 1:                       -3.04e-02 ± 7.92e-02
-Param. 2:                       9.16e-01 ± 1.16e-01
-Param. 3:                       1.03e+00 ± 6.06e-02
-Param. 4:                       7.75e-02 ± 2.31e-01
+───────────────────────────────────────────────────────────────
+Param. 1:                       -3.04e-02 ± 7.92e-02 (260.8%)
+Param. 2:                       +9.16e-01 ± 1.16e-01 (12.7%)
+Param. 3:                       +1.03e+00 ± 6.06e-02 (5.9%)
+Param. 4:                       +7.75e-02 ± 2.31e-01 (298.2%)
 Reduced χ²:                     0.30947383110883564
 Parameter estimation method:    Nelder-Mead
 Uncertainty estimation method:  Jacobian (rescaled)

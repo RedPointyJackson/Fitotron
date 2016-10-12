@@ -37,13 +37,14 @@ end
 
 function show(io::IO, r::FitResult)
     println(io, "Fit results:")
-    println(io, "─────────────────────────────────────────────────────────")
+    println(io, "───────────────────────────────────────────────────────────────")
     N = length(r.param_results)
     for i in 1:N
         param_mean = r.param_results[i]
         param_stdev = r.param_deviations[i]
-        @printf(io,"Param. %d:\t\t\t%.2e ± %.2e \n"
-                ,i , param_mean, param_stdev)
+        param_relerror = 100*param_stdev/param_mean |> abs
+        @printf(io,"Param. %d:\t\t\t%+.2e ± %.2e (%.1f%%)\n"
+                ,i , param_mean, param_stdev, param_relerror)
     end
     redchisqr = Optim.minimum(r.optresults)/r.dof
     println(io, "Reduced χ²:\t\t\t", redchisqr)
