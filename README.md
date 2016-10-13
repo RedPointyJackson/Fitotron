@@ -34,7 +34,7 @@ p = plotfit(fit)
 
 `p` will be a `Gadfly.Plot` like the following:
 
-![fit result](https://github.com/RedPointyJackson/Fitotron/blob/master/fitresult.png)
+![fit result](https://github.com/RedPointyJackson/Fitotron.jl/blob/master/fitresult.png)
 
 
 And a `fit` a `FitResult` that shows like
@@ -69,7 +69,7 @@ Uncertainty estimation method:  χ² sweeping (rescaled)
 ```
 and
 
-![sine fit result](https://github.com/RedPointyJackson/Fitotron/blob/master/fitresult_sine.png)
+![sine fit result](https://github.com/RedPointyJackson/Fitotron.jl/blob/master/fitresult_sine.png)
 
 The Jacobian method of error estimation (`uncmethod=:jacobian` in
 `fitmodel`) gives errors that are a lot
@@ -87,7 +87,7 @@ Uncertainty estimation method:  Jacobian (rescaled)
 ```
 and
 
-![sine fit result (jacobian)](https://github.com/RedPointyJackson/Fitotron/blob/master/fitresult_sine_jac.png)
+![sine fit result (jacobian)](https://github.com/RedPointyJackson/Fitotron.jl/blob/master/fitresult_sine_jac.png)
 
 There are two posible invocations, one for univariate fits and other for multivariate
 ones. Use `?fitmodel` to see the documentation.
