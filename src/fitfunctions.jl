@@ -28,7 +28,10 @@ Fit `x`,`y` arrays to a straight line, with errors
 given by `yerr`. Returns m,n and the covariance
 matrix, where the line of fit is mx+n.
 """
-function fit_line(x,y,yerr)
+function fit_line(x::Vector{Float64}
+                  ,y::Vector{Float64}
+                  ,yerr::Vector{Float64}
+                  )
     N = length(x)
 
     # Compute the parameters
@@ -59,6 +62,35 @@ function fit_line(x,y,yerr)
     covmatrix[1,1] = 1/(N*D) * br(:one)
 
     return m_mean, n_mean, covmatrix
+end
+
+"""
+    linefit(x, y [,yerr])
+
+Return an analytical fit to mx+n. If `yerr` is not provided, is
+suposed to be a vector of ones.
+"""
+function fitline(x,y,yerr=ones(x))
+    N = length(x)
+    x    = [Float64(x)    for x in x]
+    y    = [Float64(y)    for y in y]
+    yerr = [Float64(yerr) for yerr in yerr]
+    m,n,cov = fit_line(x,y,yerr)
+    param_stdevs = cov |> diag |> sqrt
+    line(x,p) = p[1]*x+p[2]
+    cost(p) = sumabs2((y[i]-line(x[i],p))/yerr[i] for i in 1:N)
+    return FitResult(
+                       [x y yerr]          # Columns with x,y,yerr[,xerr]
+                     , [m,n]               # Fit results
+                     , param_stdevs        # Deviations found
+                     , line                # Function used to fit
+                     , nothing             # Optim result
+                     , cost                # Cost function
+                     , 2                   # n of fit parameters
+                     , cov                 # Estimation of the covariance
+                     , "Analytical fit"    # Uncertainty estimation method
+                     , N-2                 # degrees of freedom
+                     )
 end
 
 """
@@ -243,7 +275,7 @@ uncertainty estimation"
 
     # Parameter stdevs
     return FitResult(
-                       data                # Columns with x,y[,yerr,xerr]
+                       data                # Columns with x,y,yerr[,xerr]
                      , best_param          # Fit results
                      , param_stdevs        # Deviations found
                      , fit_func            # Function used to fit

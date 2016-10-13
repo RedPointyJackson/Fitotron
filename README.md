@@ -85,7 +85,9 @@ and
 ![sine fit result (jacobian)](https://github.com/RedPointyJackson/Fitotron.jl/blob/master/fitresult_sine_jac.png)
 
 There are two posible invocations, one for univariate fits and other for multivariate
-ones. Use `?fitmodel` to see the documentation.
+ones. Use `?fitmodel` to see the documentation. Also, for fitting to a
+straight line, a function `fitline(x,y[,yerr])` is provided. This one
+uses an analytical method, instead of aproximations.
 
 The function used to fit should be in the form `f(x,p)` where `p` is the vector containing the parameters.
 

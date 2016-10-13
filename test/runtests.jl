@@ -24,8 +24,8 @@ end
 
 @testset "Analytical line fit" begin
     # trivial
-    x    = linspace(0,10,20)
-    y    = linspace(0,10,20)
+    x    = linspace(0,10,20) |> collect
+    y    = linspace(0,10,20) |> collect
     yerr = 0.02ones(20)
     m,n,C = Fitotron.fit_line(x,y,yerr)
     analyticC =
@@ -36,8 +36,8 @@ end
     @test C ≈ analyticC
 
     # not trivial
-    x    = [1,2,3,4,5,6,7,8,9]
-    y    = [1,2,3,8,5,6,7,8,9]
+    x    = [1,2,3,4,5,6,7,8,9]*1.0
+    y    = [1,2,3,8,5,6,7,8,9]*1.0
     yerr = [0.1,0.2,0.3,0.8,0.5,.06,0.7,0.8,0.9]
     m,n,C = Fitotron.fit_line(x,y,yerr)
     analyticC =
