@@ -1,5 +1,12 @@
 # Fitotron
 
+[![Build Status](https://travis-ci.org/RedPointyJackson/Fitotron.jl.svg?branch=master)](https://travis-ci.org/RedPointyJackson/Fitotron.jl)
+
+[![Coverage Status](https://coveralls.io/repos/RedPointyJackson/Fitotron.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/RedPointyJackson/Fitotron.jl?branch=master)
+
+[![codecov.io](http://codecov.io/github/RedPointyJackson/Fitotron.jl/coverage.svg?branch=master)](http://codecov.io/github/RedPointyJackson/Fitotron.jl?branch=master)
+
+
 Fitotron provides ordinary least squares with a simple interface. It
 uses a Nelder-Mead method (or a Brent method, in univariate fits) to
 find the optimum parameters of the fit.
