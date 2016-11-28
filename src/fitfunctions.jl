@@ -291,16 +291,17 @@ end
 
 """
 
-    fitmodel(f, x, y, from, to)
+    fitmodel(f, x, y, [initalparams])
 
-Fit a 1D model. Optional parameters are:
-  xerr               errors in x
-  yerr               errors in y
-  fitmethod          Custom `Optim.Optimizer()` to
-                     use. Defaults to Brent().
-  uncmethod          Or `:chisweep` (default) or `:jacobian`
-  rescaling          Force red.χ² = 1 in the minimum. Enabled
-                     by default if there are no x or y errors.
+Fit to a 1D model `f`. Optional parameters are:
+
+* `xerr`: errors in x
+* `yerr`: errors in y
+* `fitmethod`: Custom `Optim.Optimizer()` to use. Defaults to
+                      NelderMead()
+* `uncmethod`: Or `:chisweep` (default) or `:jacobian`
+* `rescaling`: Force red.χ² = 1 in the minimum. Enabled by default if
+                    there are no x or y errors.
 """
 function fitmodel(fit_func::Function
                               , x
@@ -368,14 +369,15 @@ end
 
     fitmodel(f, x, y, [initalparams])
 
-Fit a ND model, with N>1. Optional parameters are:
-  xerr               errors in x
-  yerr               errors in y
-  fitmethod          Custom `Optim.Optimizer()` to
-                     use. Defaults to NelderMead()
-  uncmethod          Or `:chisweep` (default) or `:jacobian`
-  rescaling          Force red.χ² = 1 in the minimum. Enabled
-                     by default if there are no x or y errors.
+Fit to a ND model `f`, with N>1. Optional parameters are:
+
+* `xerr`: errors in x.
+* `yerr`: errors in y.
+* `fitmethod`: Custom `Optim.Optimizer()` to use. Defaults to
+                      NelderMead().
+* `uncmethod`: Or `:chisweep` (default) or `:jacobian`.
+* `rescaling`: Force red.χ² = 1 in the minimum. Enabled by default if
+                    there are no x or y errors.
 """
 function fitmodel(fit_func::Function
                        , x

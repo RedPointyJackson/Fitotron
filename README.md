@@ -94,3 +94,13 @@ The function used to fit should be in the form `f(x,p)` where `p` is the vector 
 ## Caveats
 The chi sweep uncertainty estimation is very different to `gnuplot`'s one, for
 example, and a lot of times very pessimistic.
+
+## Ideas/TODO
+
+- Ditch χ² in favour of Jacobian linealization.
+- Offer (for D=2) to see a contour plot of the parameters, with σ boundaries.
+- Specialized fit functions. Something like
+  `fitmodel(Parabolic(),x,y)` to quickly fit to
+  `p[1](x-p[2])^2 + p[3]`, for example. It also offers
+  specialization via multiple dispatch (`fitmodel(Lineal(),x,y)` calls
+  `fitline`)
