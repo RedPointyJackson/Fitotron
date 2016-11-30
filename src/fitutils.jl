@@ -1,7 +1,3 @@
-using Gadfly
-using Fitotron
-
-
 """
 
     plotfit(res)
@@ -13,10 +9,6 @@ function plotfit(fit::FitResult)
     Gadfly.push_theme(:dark)
     # Number of points when discretizing the functions.
     const fun_resolution = 1000
-    # Ignore Orear things.
-    if size(fit.data,2) == 4
-        error("Can't plot (yet) a fit with Orear method.")
-    end
     # Extract the data
     x      = fit.data[:,1]
     y      = fit.data[:,2]
@@ -61,3 +53,30 @@ function plotfit(fit::FitResult)
     Gadfly.pop_theme()
     return p
 end
+
+
+"""
+
+    propagate_errors(f,params,param_stdevs,x)
+
+
+Given `f(x,params)` and the stdev in the params, compute the stdev
+of `f` in `x` by error propagation.
+"""
+function propagate_errors(f,params,param_stdevs,x)
+    # Take the derivatives of f(x,params) in the point
+    g(params) = f(x,params)
+    if length(params) > 1
+        dds = Calculus.gradient(g)(params)
+    else
+        dds = g'(params)
+    end
+    # The stdev squared is ∑(∂f/∂pᵢ ⋅ δpᵢ)² + ⋯
+    stdev = sqrt(sumabs2( dds .* param_stdevs))
+end
+
+
+"""
+br(x,σ) computes [x] = 1/N Σ xᵢ/σ.
+"""
+br(x,σ) = sum(  x./(σ.^2) / length(x) )

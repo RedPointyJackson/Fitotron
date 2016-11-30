@@ -1,68 +1,6 @@
 # Utility function
-"""
-
-    propagate_errors(f,params,param_stdevs,x)
 
 
-Given `f(x,params)` and the stdev in the params, compute the stdev
-of `f` in `x` by error propagation.
-"""
-function propagate_errors(f,params,param_stdevs,x)
-    # Take the derivatives of f(x,params) in the point
-    g(params) = f(x,params)
-    if length(params) > 1
-        dds = Calculus.gradient(g)(params)
-    else
-        dds = g'(params)
-    end
-    # The stdev squared is ∑(∂f/∂pᵢ ⋅ δpᵢ)² + ⋯
-    stdev = sqrt(sumabs2( dds .* param_stdevs))
-end
-
-
-"""
-
-    fit_line(x,y,yerr)
-
-Fit `x`,`y` arrays to a straight line, with errors
-given by `yerr`. Returns m,n and the covariance
-matrix, where the line of fit is mx+n.
-"""
-function fit_line(x::Vector{Float64}
-                  ,y::Vector{Float64}
-                  ,yerr::Vector{Float64}
-                  )
-    N = length(x)
-
-    # Compute the parameters
-    function br(f)
-        # By definition, [x] = 1/N Σ x/σ
-        if f != :one
-            vals = [f[i]/yerr[i]^2 for i in 1:N]/N
-            return sum(vals)
-        else
-            myf = [1.0 for i in 1:N]
-            vals = [myf[i]/yerr[i]^2 for i in 1:N]/N
-            return sum(vals)
-        end
-    end
-
-    # Linear regresion parameters
-    m_mean = ( br(:one)*br(x.*y) - br(x)*br(y) )/(  br(:one)*br(x.*x) - br(x)*br(x)  )
-    n_mean = mean(y)-m_mean*mean(x)
-
-    # Covariance matrix
-    covmatrix = zeros(2,2)
-
-    D = br(x.*x)*br(:one) - br(x)*br(x)
-
-    covmatrix[2,2] = 1/(N*D) * br(x.*x)
-    covmatrix[1,2] = -1/(N*D) * br(x)
-    covmatrix[2,1] = -1/(N*D) * br(x)
-    covmatrix[1,1] = 1/(N*D) * br(:one)
-
-    return m_mean, n_mean, covmatrix
-end
 
 """
     linefit(x, y [,yerr])
@@ -81,7 +19,7 @@ function fitline(x,y,yerr=ones(x))
     cost(p) = sumabs2((y[i]-line(x[i],p))/yerr[i] for i in 1:N)
     return FitResult(
                        [x y yerr]          # Columns with x,y,yerr[,xerr]
-                     , [m,n]               # Fit results
+                     , [m; n]               # Fit results
                      , param_stdevs        # Deviations found
                      , line                # Function used to fit
                      , nothing             # Optim result
@@ -300,8 +238,8 @@ Fit to a 1D model `f`. Optional parameters are:
 * `fitmethod`: Custom `Optim.Optimizer()` to use. Defaults to
                       NelderMead()
 * `uncmethod`: Or `:chisweep` (default) or `:jacobian`
-* `rescaling`: Force red.χ² = 1 in the minimum. Enabled by default if
-                    there are no x or y errors.
+* `rescaling`: Force reduced χ² equal to 1 in the minimum. Enabled by
+                    default if there are no x or y errors.
 """
 function fitmodel(fit_func::Function
                               , x
@@ -376,8 +314,8 @@ Fit to a ND model `f`, with N>1. Optional parameters are:
 * `fitmethod`: Custom `Optim.Optimizer()` to use. Defaults to
                       NelderMead().
 * `uncmethod`: Or `:chisweep` (default) or `:jacobian`.
-* `rescaling`: Force red.χ² = 1 in the minimum. Enabled by default if
-                    there are no x or y errors.
+* `rescaling`: Force reduced χ² equal to 1 in the minimum. Enabled by
+                    default if there are no x or y errors.
 """
 function fitmodel(fit_func::Function
                        , x
