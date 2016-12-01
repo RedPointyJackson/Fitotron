@@ -16,16 +16,12 @@ function plotfit(fit::FitResult)
     xmin   = minimum(x)
     xmax   = maximum(x)
     xrange = linspace(xmin,xmax,fun_resolution)
-    fitfun = fit.fit_func
-    params = fit.param_results
-    devs   = fit.param_deviations
     # Fit function layer
-    fitlayer = layer(x->fitfun(x,params)
+    fitlayer = layer(fit.fit_func
                      ,xmin, xmax)
     # Fit deviation layer
-    errorfun(x) = Fitotron.propagate_errors(fitfun,params,devs,x)
-    error_vals = map(errorfun, xrange)
-    fit_vals = map(x->fitfun(x,params), xrange)
+    error_vals = map(fit.fit_dev, xrange)
+    fit_vals = map(fit.fit_func, xrange)
     error_df = DataFrame(  x    = xrange
                          , ymax = fit_vals + error_vals
                          , ymin = fit_vals - error_vals
@@ -50,6 +46,59 @@ function plotfit(fit::FitResult)
     end
     # Combine them and plot.
     p = plot(datalayer, fitlayer, devlayer)
+    Gadfly.pop_theme()
+    return p
+end
+
+"""
+
+    plotcost(res)
+
+Returns a Gadfly contour plot of the cost function of `res`. It must
+have two parameters maximum. The 1σ, 2σ and 3σ contours will be drawn,
+with the obtained parameters.
+"""
+function plotcost(fit::FitResult)
+    Gadfly.push_theme(:dark)
+    if length(fit.param_results) == 1
+        error("TODO for 1D fits")
+    elseif length(fit.param_results) == 2
+        μ1, μ2 = fit.param_results
+        σ1, σ2 = fit.param_deviations
+        sigmarange = 6
+        xrange = linspace(μ1-sigmarange*σ1, μ1+sigmarange*σ1, 100)
+        yrange = linspace(μ2-sigmarange*σ2, μ2+sigmarange*σ2, 100)
+        df = DataFrame()
+        for x in xrange, y in yrange
+            cost = fit.cost([x;y]) |> abs |> log
+            μdf = DataFrame(
+                             x = x
+                            ,y = y
+                            ,cost = cost
+                            )
+            df = vcat(df,μdf)
+        end
+        fitcost(x,y) = fit.cost([x; y])
+        mincost = fitcost(μ1,μ2)
+        onesigma   = mincost*1sqrt(2)
+        twosigma   = mincost*2sqrt(2)
+        threesigma = mincost*3sqrt(2)
+        p =
+        plot(z=fitcost, x=xrange, y=yrange
+             , xintercept = [μ1]
+             , yintercept = [μ2]
+             , Geom.contour(
+                            levels = [onesigma; twosigma; threesigma]
+                            )
+             , Geom.vline
+             , Geom.hline
+             , Guide.xlabel("Parameter 1")
+             , Guide.ylabel("Parameter 2")
+             , Guide.title("log of absolute cost function")
+             )
+    else
+        error("Fit has too many parameters for a 2D screen.")
+    end
     Gadfly.pop_theme()
     return p
 end

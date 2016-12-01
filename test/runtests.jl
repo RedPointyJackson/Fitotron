@@ -1,5 +1,6 @@
 using Base.Test
 using Fitotron
+using Gadfly
 
 srand(42)
 
@@ -50,6 +51,10 @@ end
     @test σm ≈ 0.05287908290229
     @test  n ≈ 0.24952872260996
     @test σn ≈ 0.12430728667796
+
+    # Try the plotting functions
+    plotfit(fit)
+    plotcost(fit)
 end
 
 # @testset "Param correctness" begin

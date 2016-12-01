@@ -3,7 +3,7 @@ __precompile__()
 module Fitotron
 
 export AbstractModel, CustomModel, LinearModel, QuadraticModel
-export fitmodel, plotfit
+export fitmodel, plotfit, plotcost
 
 using Optim
 using Calculus
