@@ -57,6 +57,30 @@ end
     plotcost(fit)
 end
 
+@testset "Custom line fit" begin
+    x    = linspace(0,2π,20)
+    y    = sin(x) + randn(20)
+    model = CustomModel(
+                        (x,p)->p[1]*sin(p[2]*x)
+                        ,x,y,2
+                        )
+    fit = fitmodel(model)
+
+    # Try the plotting functions
+    plotfit(fit)
+    plotcost(fit)
+
+    # Check if for a line it gives the same results as an analytical
+    # fit.
+    x = linspace(0,1,100)
+    y = 2x+1+randn(100)
+    linmodel = LinearModel(x,y)
+    cusmodel = CustomModel((x,p)->p[1]*x+p[2],x,y,2)
+    linparams = fitmodel(linmodel).param_results
+    cusparams = fitmodel(cusmodel).param_results
+    @test norm(linparams-cusparams)/norm(linparams) < 1e4
+end
+
 # @testset "Param correctness" begin
 #     ############################
 #     #                          #

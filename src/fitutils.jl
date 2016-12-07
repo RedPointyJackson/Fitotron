@@ -50,6 +50,7 @@ function plotfit(fit::FitResult)
     return p
 end
 
+
 """
 
     plotcost(res)
@@ -57,6 +58,8 @@ end
 Returns a Gadfly contour plot of the cost function of `res`. It must
 have two parameters maximum. The 1σ, 2σ and 3σ contours will be drawn,
 with the obtained parameters.
+
+TODO: when sigma contours are outside the picture, it fails.
 """
 function plotcost(fit::FitResult)
     Gadfly.push_theme(:dark)
@@ -68,33 +71,34 @@ function plotcost(fit::FitResult)
         sigmarange = 6
         xrange = linspace(μ1-sigmarange*σ1, μ1+sigmarange*σ1, 100)
         yrange = linspace(μ2-sigmarange*σ2, μ2+sigmarange*σ2, 100)
-        df = DataFrame()
-        for x in xrange, y in yrange
-            cost = fit.cost([x;y]) |> abs |> log
-            μdf = DataFrame(
-                             x = x
-                            ,y = y
-                            ,cost = cost
-                            )
-            df = vcat(df,μdf)
-        end
         fitcost(x,y) = fit.cost([x; y])
         mincost = fitcost(μ1,μ2)
-        onesigma   = mincost*1sqrt(2)
-        twosigma   = mincost*2sqrt(2)
-        threesigma = mincost*3sqrt(2)
+        colors = linspace(nicered,niceblue,4)
         p =
         plot(z=fitcost, x=xrange, y=yrange
-             , xintercept = [μ1]
-             , yintercept = [μ2]
              , Geom.contour(
-                            levels = [onesigma; twosigma; threesigma]
+                            # Variance of red. χ² is 2N → σ = √(2N)
+                            levels = mincost + [0.5;1;2;3]*sqrt(2*mincost)/2
                             )
-             , Geom.vline
-             , Geom.hline
+             , Scale.color_discrete_manual(colors...)
+             , Guide.manual_color_key("Coberture"
+                                      ,["½σ";"1σ";"2σ";"3σ"]
+                                      ,collect(colors)
+                                      )
+             ,Guide.annotation(
+                              compose(context()
+                                      , circle(μ1,μ2,1mm)
+                                      , line([(μ1,μ2),(μ1+σ1,μ2)])
+                                      , line([(μ1,μ2),(μ1-σ1,μ2)])
+                                      , line([(μ1,μ2),(μ1,μ2+σ2)])
+                                      , line([(μ1,μ2),(μ1,μ2-σ2)])
+                                      , fill(colorant"orange"),
+                                      stroke(colorant"orange")
+                                      )
+                               )
              , Guide.xlabel("Parameter 1")
              , Guide.ylabel("Parameter 2")
-             , Guide.title("log of absolute cost function")
+             , Guide.title("Cost function")
              )
     else
         error("Fit has too many parameters for a 2D screen.")
@@ -129,3 +133,16 @@ end
 br(x,σ) computes [x] = 1/N Σ xᵢ/σ.
 """
 br(x,σ) = sum(  x./(σ.^2) / length(x) )
+
+"""
+    thing2array(anything)
+
+Gets something and tries its best to obtain a vector of Float64
+"""
+function thing2array(thing)::Vector{Float64}
+    if length(thing) == 0
+        error("Can't use an empty array")
+    else
+        return vec([Float64(x) for x in thing])
+    end
+end

@@ -3,9 +3,12 @@ Most general representation of a fitting model.
 """
 abstract AbstractModel
 
+
+
+defaultOptim(dims) = dims == 1 ? Optim.Brent() : Optim.NelderMead()
 """
 
-    CustomModel(func, dims, x, y, yerr, rescale)
+    CustomModel(func, dims, x, y, yerr, rescale, optimizator)
 
 General fitting model, with user provided custom function. If
 `rescale`, force χ² = d.o.f. in its minimum.
@@ -17,8 +20,41 @@ immutable CustomModel <: AbstractModel
     y       ::Vector{Float64}
     yerr    ::Vector{Float64}
     rescale ::Bool
+    optimizator
+    bounds :: Vector{Float64}
+
+    # User input may (will) be messy
+    CustomModel(func,dims
+                ,x,y,yerr
+                ,rescale,optimizator
+                ,bounds
+                ) = new(
+                        func
+                        ,Int64(dims)
+                        ,thing2array(x)
+                        ,thing2array(y)
+                        ,thing2array(yerr)
+                        ,rescale
+                        ,optimizator
+                        ,thing2array(bounds)
+                        )
+    # Convenience methods
+    CustomModel(func,x,y,dims::Int64
+                ) = CustomModel(
+                                func, dims
+                                , x, y, ones(y)
+                                , true, defaultOptim(dims)
+                                , dims==1? [-1.8;1e8] : ones(dims)
+                                )
 end
 
+function show(io::IO, m::CustomModel)
+    println(io, "Custom model")
+    println(io, "   $(m.dims) parameters")
+    println(io, "   rescale: $(m.rescale)")
+    println(io, "   function: $(m.func)")
+    # Print the data
+end
 
 """
     LinearModel(x, y, yerr, rescale)
@@ -37,16 +73,23 @@ immutable LinearModel <: AbstractModel
     rescale ::Bool
 
     # User input may (will) be messy
-    LinearModel(x,y,yerr,rescale) = new( convert(Vector{Float64},1.0*x)
-                                        ,convert(Vector{Float64},1.0*y)
-                                        ,convert(Vector{Float64},1.0*yerr)
+    LinearModel(x,y,yerr,rescale) = new( thing2array(x)
+                                        ,thing2array(y)
+                                        ,thing2array(yerr)
                                         ,rescale)
     # Convenience methods
-    LinearModel(y)                = new(1:length(y), y ,ones(y), true)
-    LinearModel(x,y)              = new(x, y, ones(x), true)
-    LinearModel(x,y,yerr)         = new(x, y, yerr, false)
+    LinearModel(y)                = LinearModel(1:length(y), y ,ones(y), true)
+    LinearModel(x,y)              = LinearModel(x, y, ones(x), true)
+    LinearModel(x,y,yerr)         = LinearModel(x, y, yerr, false)
 end
 
+function show(io::IO, m::LinearModel)
+    if m.rescale
+        println(io, "Linear model with rescaling")
+    else
+        println(io, "Linear model without rescaling")
+    end
+end
 
 
 """

@@ -2,7 +2,7 @@
 
     fit(LinearModel)
 
-Fit to a straight line.
+Fit to a straight line using analytical results.
 """
 function fitmodel(m::LinearModel)
     # Extract data
@@ -57,5 +57,107 @@ function fitmodel(m::LinearModel)
               ,covmatrix        # Covariance (can be empty).
               ,dof              # Degrees of freedom.
               ,m.rescale        # Was rescaling applied?
+              )
+end
+
+
+"""
+
+    fit(CustomModel)
+
+Fit to a custom function, optimizing the cost function and estimating
+the deviations with a Jacobian linearization.
+"""
+function fitmodel(m::CustomModel)
+
+    x           = m.x
+    y           = m.y
+    yerr        = m.yerr
+    f           = m.func
+    bounds      = m.bounds
+    rescale     = m.rescale
+    dims        = m.dims
+    optimizator = m.optimizator
+
+    N = length(x)
+
+    dof = N - dims
+    dof < 1 && warn("dof = $dof < 1")
+
+    # Auxiliar functions
+    # The [1] fixes a bug with functions of the style p*x instead of
+    # p[1]*x.
+    vmodel(xvalues,param) =
+        [f(x,param)[1]::Float64 for x in xvalues]
+
+    # Cost function to minimize. Defined as
+    # the sum of squares of (y-yᵢ)/σᵢ
+    cost(param) = sumabs2( ( vmodel(x,param)-y ) ./ yerr)
+
+    # Find the best parameters
+    if dims == 1
+        lowerbound, upperbound = bounds
+        opt = Optim.optimize(cost,lowerbound,upperbound,m.optimizator)
+    else
+        opt = Optim.optimize(cost,bounds,optimizator)
+    end
+
+    param_results = Optim.minimizer(opt)
+    # For consistency, ensure it's a vector
+    if typeof(param_results) != Vector{Float64}
+        param_results = [param_results]
+    end
+
+    # Now we have the mean values! To obtain deviations, use a
+    # Jacobian linearization.
+
+    # Compute the jacobian of the function which returns a vector
+    # with the fit of the model in x = xx (the user x vector), as
+    # a function of the parameters.
+    if dims == 1
+        # In the 1D case, it's just the row vector
+        # [∂/∂x f(x_1), ⋯ , ∂/∂x  f(x_n) ]ᵀ
+        Jac(p) = [Calculus.derivative(x->fit_func(x,p),ζ)::Float64 for ζ in x]
+        J = Jac(best_param[1]) # Eval at minimum
+    else
+        Jac = Calculus.jacobian(param->vmodel(x,param))
+        J = Jac(param_results)
+    end
+    # Weight matrix
+    W = diagm(1./(yerr.^2))
+    # Covariance
+    if dims == 1
+        C = 1/(J'*W*J)[1]
+        param_deviations = [sqrt(C)]
+        # Make the covariance a matrix
+        C = fill(C,1,1)
+    else
+        C = (J'*W*J) |> inv
+        param_deviations = [sqrt(c) for c in diag(C)]
+    end
+
+    if rescale
+        # We need χ² to be the dof at the minimum
+        # Using that χ² in the minimum is ∝ 1/yerr², it sufices to
+        # multiply yerr by sqrt(χmin/dof). And that implies that the
+        # σ's get multiplied by that also.
+        α = sqrt(Optim.minimum(opt)/dof)
+        C *= α
+        param_deviations *= α
+    end
+
+    # Get some functions and export everything.
+    fit_func(x) = f(x,param_results)
+    fit_dev(x) = propagate_errors(f,param_results,param_deviations,x)
+    FitResult(
+               [x y yerr]       #Columns with x,y,yerr.
+              ,param_results    #Fit results.
+              ,param_deviations #Deviations found.
+              ,fit_func         #Function used to fit.
+              ,fit_dev          #1σ deviation at each point.
+              ,cost             #Cost function.
+              ,C                #Covariance (can be empty).
+              ,dof              #Degrees of freedom.
+              ,rescale          #Was rescaling applied?
               )
 end

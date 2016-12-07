@@ -2,13 +2,21 @@ __precompile__()
 
 module Fitotron
 
-export AbstractModel, CustomModel, LinearModel, QuadraticModel
+export CustomModel, LinearModel
 export fitmodel, plotfit, plotcost
 
 using Optim
 using Calculus
 using DataFrames
+
+# Cool plots
 using Gadfly
+using Compose
+using Colors
+# Will be used in plots
+nicered = colorant"#7E273E"
+niceblue = colorant"#006291"
+
 import Base.show
 
 """
@@ -38,12 +46,11 @@ function show(io::IO, r::FitResult)
                 ,i , param_mean, param_stdev, param_relerror)
     end
     redchisqr = r.cost(r.param_results)/r.dof
-    @printf(io, "Reduced χ² without rescaling:\t%.4lf", redchisqr)
+    @printf(io, "Reduced χ²\t\t\t%.4lf\n", redchisqr)
     if r.rescaling
         @printf(io, "Errors were rescaled so χ²=d.o.f.\n")
     end
 end
-
 
 include("fitutils.jl")
 include("models.jl")
