@@ -61,8 +61,8 @@ end
     x    = linspace(0,2π,20)
     y    = sin(x) + randn(20)
     model = CustomModel(
-                        (x,p)->p[1]*sin(p[2]*x)
-                        ,x,y,2
+                        (x,p)->p[1]*sin(p[2]*x), 2
+                        ,x,y
                         )
     fit = fitmodel(model)
 
@@ -75,7 +75,7 @@ end
     x = linspace(0,1,100)
     y = 2x+1+randn(100)
     linmodel = LinearModel(x,y)
-    cusmodel = CustomModel((x,p)->p[1]*x+p[2],x,y,2)
+    cusmodel = CustomModel((x,p)->p[1]*x+p[2],2,x,y)
     linparams = fitmodel(linmodel).param_results
     cusparams = fitmodel(cusmodel).param_results
     @test norm(linparams-cusparams)/norm(linparams) < 1e4

@@ -10,6 +10,11 @@ defaultOptim(dims) = dims == 1 ? Optim.Brent() : Optim.NelderMead()
 
     CustomModel(func, dims, x, y, yerr, rescale, optimizator)
 
+    CustomModel(func, dims, x, y [; yerr=[1,1,…]
+                                  , rescale=false
+                                  , optimizator=Brent/NelderMead]
+               )
+
 General fitting model, with user provided custom function. If
 `rescale`, force χ² = d.o.f. in its minimum.
 """
@@ -39,12 +44,16 @@ immutable CustomModel <: AbstractModel
                         ,thing2array(bounds)
                         )
     # Convenience methods
-    CustomModel(func,x,y,dims::Int64
+    CustomModel(func,dims::Int64,x,y
+                ; yerr        = ones(x)
+                , rescale     = yerr==ones(x)
+                , optimizator = defaultOptim(dims)
+                , bounds      = dims==1? [-1e8;1e8] : ones(dims)
                 ) = CustomModel(
                                 func, dims
-                                , x, y, ones(y)
-                                , true, defaultOptim(dims)
-                                , dims==1? [-1.8;1e8] : ones(dims)
+                                , x, y, yerr
+                                , rescale, optimizator
+                                , bounds
                                 )
 end
 
@@ -57,7 +66,7 @@ function show(io::IO, m::CustomModel)
 end
 
 """
-    LinearModel(x, y, yerr, rescale)
+    LinearModel([x,] y [, yerr, rescale])
 
 Linear fitting model, of function y = mx+n.
 If omitted,
@@ -89,18 +98,4 @@ function show(io::IO, m::LinearModel)
     else
         println(io, "Linear model without rescaling")
     end
-end
-
-
-"""
-
-    QuadraticModel(x, y, yerr, rescale)
-
-Quadratic fitting model, of function y = ax²+bx+c.
-"""
-immutable QuadraticModel <: AbstractModel
-    x       ::Vector{Float64}
-    y       ::Vector{Float64}
-    yerr    ::Vector{Float64}
-    rescale ::Bool
 end
