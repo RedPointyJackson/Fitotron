@@ -78,3 +78,5 @@ and
 ## Linear models
 - Uncertainties are way smaller than the `CustomModel` ones. Is that
   the expected behaivour?
+## Ideas
+- Add x error capabilities, via Orear's method of effective variances.
