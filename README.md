@@ -2,13 +2,14 @@
 
 [![Build Status](https://travis-ci.org/RedPointyJackson/Fitotron.jl.svg?branch=master)](https://travis-ci.org/RedPointyJackson/Fitotron.jl)
 
-Fitotron provides ordinary least squares with a simple interface. It
-uses a Nelder-Mead method (or a Brent method, in univariate fits) to
-find the optimum parameters of the fit.
+Fitotron provides ordinary least squares for 2D data with a simple
+interface. It uses by default a Nelder-Mead method (or a Brent method,
+in univariate fits) to find the optimum parameters of the fit, thanks
+to the `Optim` library.
 
-It can rescale the parameter uncertainties using the
-minimum value of the sum of residuals function; this is the default
-behaivour when y errors are not provided, although it can be disabled.
+It can rescale the parameter uncertainties using the minimum value of
+the sum of residuals function; this is the default behaviour when y
+errors are not provided, although it can be disabled.
 
 ## Usage
 In a REPL, type:
@@ -16,91 +17,64 @@ In a REPL, type:
 ```julia
 using Fitotron
 
-srand(42)
-const N = 50
-x = linspace(0,2π,N) |> collect
+N = 50
+x = linspace(0,2π,N)
 y = sin(x) + 0.5randn(N)
 
-fun(x,p) = p[1] +p[2]*x
-fit = fitmodel(fun,x,y,[1,1])
+fun(x,p) = p[1] + p[2]*x
+model = CustomModel(fun,2,x,y)
+fit = fitmodel(model)
 
 p = plotfit(fit)
+c = plotcost(fit)
 ```
 
-`p` will be a `Gadfly.Plot` like the following:
+`p,c` will be two `Gadfly.Plot` like the following:
 
 ![fit result](https://github.com/RedPointyJackson/Fitotron.jl/blob/master/fitresult.png)
 
+![fit cost](https://github.com/RedPointyJackson/Fitotron.jl/blob/master/fitcost.png)
 
 And a `fit` a `FitResult` that shows like
 ```
 Fit results:
 ───────────────────────────────────────────────────────────────
-Param. 1:                       +7.57e-01 ± 5.31e-01 (70.1%)
-Param. 2:                       -2.49e-01 ± 1.77e-01 (71.0%)
-Reduced χ²:                     0.4950205376301822
-Parameter estimation method:    Nelder-Mead
-Uncertainty estimation method:  χ² sweeping (rescaled)
+Param. 1:                       +1.14e+00 ± 1.86e-01 (16.3%)
+Param. 2:                       -3.49e-01 ± 5.11e-02 (14.6%)
+Reduced χ²                      0.4467
+Errors were rescaled so χ²=d.o.f.
 ```
 in the REPL. A fit to a sine would be better, indeed:
 
 ```julia
 sine(x,p) = p[1] + p[2]*sin(p[3]*x+p[4])
-fit = fitmodel(sine,x,y,ones(4))
-plotfit(fit)
+model = CustomModel(sine,4,x,y)
+fit = fitmodel(model)
+
+p = plotfit(fit)
 ```
 
 Which gives:
 ```
 Fit results:
 ───────────────────────────────────────────────────────────────
-Param. 1:                       -3.04e-02 ± 1.89e-02 (62.1%)
-Param. 2:                       +9.16e-01 ± 5.09e-01 (55.6%)
-Param. 3:                       +1.03e+00 ± 6.97e-01 (67.9%)
-Param. 4:                       +7.75e-02 ± 4.11e-02 (53.0%)
-Reduced χ²:                     0.30947383110883564
-Parameter estimation method:    Nelder-Mead
-Uncertainty estimation method:  χ² sweeping (rescaled)
+Param. 1:                       +4.48e-02 ± 7.30e-02 (163.0%)
+Param. 2:                       +1.07e+00 ± 1.04e-01 (9.8%)
+Param. 3:                       +9.27e-01 ± 5.42e-02 (5.9%)
+Param. 4:                       +2.11e-01 ± 1.96e-01 (92.8%)
+Reduced χ²                      0.2645
+Errors were rescaled so χ²=d.o.f.
 ```
 and
 
 ![sine fit result](https://github.com/RedPointyJackson/Fitotron.jl/blob/master/fitresult_sine.png)
 
-The Jacobian method of error estimation (`uncmethod=:jacobian` in
-`fitmodel`) gives errors that are a lot
-less conservative:
-```
-Fit results:
-───────────────────────────────────────────────────────────────
-Param. 1:                       -3.04e-02 ± 7.92e-02 (260.8%)
-Param. 2:                       +9.16e-01 ± 1.16e-01 (12.7%)
-Param. 3:                       +1.03e+00 ± 6.06e-02 (5.9%)
-Param. 4:                       +7.75e-02 ± 2.31e-01 (298.2%)
-Reduced χ²:                     0.30947383110883564
-Parameter estimation method:    Nelder-Mead
-Uncertainty estimation method:  Jacobian (rescaled)
-```
-and
-
-![sine fit result (jacobian)](https://github.com/RedPointyJackson/Fitotron.jl/blob/master/fitresult_sine_jac.png)
-
-There are two posible invocations, one for univariate fits and other for multivariate
-ones. Use `?fitmodel` to see the documentation. Also, for fitting to a
-straight line, a function `fitline(x,y[,yerr])` is provided. This one
-uses an analytical method, instead of aproximations.
-
-The function used to fit should be in the form `f(x,p)` where `p` is the vector containing the parameters.
-
-## Caveats
-The chi sweep uncertainty estimation is very different to `gnuplot`'s one, for
-example, and a lot of times very pessimistic.
-
-## Ideas/TODO
-
-- Ditch χ² in favour of Jacobian linealization.
-- Offer (for D=2) to see a contour plot of the parameters, with σ boundaries.
-- Specialized fit functions. Something like
-  `fitmodel(Parabolic(),x,y)` to quickly fit to
-  `p[1](x-p[2])^2 + p[3]`, for example. It also offers
-  specialization via multiple dispatch (`fitmodel(Lineal(),x,y)` calls
-  `fitline`)
+# TODO/Bugs:
+## Cost function plot
+- It has two legends
+- Works only for functions of 2 parameters, it
+  should let the user choose which dimensions should it choose for
+  models of higher dimensionality and be a 1D plot for 1D models.
+## Linear models
+- Uncertainties are way smaller than the `CustomModel` ones. Is that
+  the expected behaivour?

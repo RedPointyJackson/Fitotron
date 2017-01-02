@@ -1,8 +1,8 @@
 """
 
-    plotfit(res)
+    plotfit(fit)
 
-Returns a Gadfly plot of `res`.
+Returns a Gadfly plot of `fit`.
 """
 function plotfit(fit::FitResult)
     # Customization of the plot style
@@ -59,7 +59,10 @@ Returns a Gadfly contour plot of the cost function of `res`. It must
 have two parameters maximum. The 1σ, 2σ and 3σ contours will be drawn,
 with the obtained parameters.
 
-TODO: when sigma contours are outside the picture, it fails.
+#TODO
+* When sigma contours are outside the picture, it fails.
+* Not done for 1D fits.
+
 """
 function plotcost(fit::FitResult)
     Gadfly.push_theme(:dark)
@@ -106,7 +109,6 @@ function plotcost(fit::FitResult)
     Gadfly.pop_theme()
     return p
 end
-
 
 """
 

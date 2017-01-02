@@ -63,15 +63,37 @@ end
 
 """
 
-    fit(CustomModel)
+    fit(CustomModel [;from=:beginning,to=:end])
 
 Fit to a custom function, optimizing the cost function and estimating
-the deviations with a Jacobian linearization.
+the deviations with a Jacobian linearization. Alternatively, you can
+specify the x range to fit with `from` and `to`. `:beginning` and
+`:end` will be substituted by the minimum and maximum x.
 """
-function fitmodel(m::CustomModel)
+function fitmodel(m::CustomModel; from=:beginning, to=:end)
 
-    x           = m.x
-    y           = m.y
+    if isa(from,Real)
+        firstx = convert(Float64,from)
+    elseif from == :beginning
+        firstx = minimum(m.x)
+    else
+        error("Please, use `:beginning` or a real number for `from`")
+    end
+
+
+    if isa(to,Real)
+        lastx = convert(Float64,to)
+    elseif to == :end
+        lastx = maximum(m.x)
+    else
+        error("Please, use `:end` or a real number for `to`")
+    end
+
+    firstidx = findfirst(x->x==firstx ,m.x)
+    lastidx  = findfirst(x->x==lastx  ,m.x)
+
+    x           = m.x[firstidx:lastidx]
+    y           = m.y[firstidx:lastidx]
     yerr        = m.yerr
     f           = m.func
     bounds      = m.bounds

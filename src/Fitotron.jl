@@ -46,7 +46,7 @@ function show(io::IO, r::FitResult)
                 ,i , param_mean, param_stdev, param_relerror)
     end
     redchisqr = r.cost(r.param_results)/r.dof
-    @printf(io, "Reduced χ²\t\t\t%.4lf\n", redchisqr)
+    @printf(io, "Reduced χ²:\t\t\t%.4lf\n", redchisqr)
     if r.rescaling
         @printf(io, "Errors were rescaled so χ²=d.o.f.\n")
     end
